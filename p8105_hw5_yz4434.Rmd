@@ -1,0 +1,78 @@
+---
+title: "Homework 5"
+output: github_document
+---
+
+```{r, include = FALSE, message = FALSE, warning = FALSE}
+library(tidyverse)
+
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+```
+
+
+
+```{r}
+library(tidyverse)
+library(readr)
+```
+
+# Question 1
+
+# Question 2
+Import and tidy data
+```{r}
+
+file_path = list.files(path = "data", pattern = "\\.csv$", full.names = TRUE)
+
+study_df=
+  file_path |> as.data.frame() |> mutate(data=map(file_path,read_csv)) |> as.tibble() |> unnest(data) |> 
+mutate(
+  file_path=str_replace(file_path,'\\.csv', ''),
+  file_path=str_replace(file_path, 'data/','')
+) |> 
+    janitor::clean_names() |> 
+    pivot_longer(
+    week_1:week_8,
+    names_to = "week", 
+    values_to = "observations",
+    names_prefix = "week_")|> 
+    separate(file_path,into = c("arm","subject_id"))
+
+study_df
+
+```
+
+Spaghetti Plot
+```{r}
+spaghetti_plot =
+  study_df |> 
+  ggplot(aes(x= week, y=observations, group=subject_id, color=arm))+geom_line()+
+  facet_grid(~arm)+
+    labs(title = "Spaghetti Plot of Observations Over Time",
+       x = "Week",
+       y = "Observations",
+       color = "Arm")
+
+spaghetti_plot
+```
+Comments: Compare these two spaghetti plots group by arm, we can see that the 
+control arm has the range of observations between around -2.45 and 4.25, however
+the experimental arm has the range of observations between around -1.45 and 7.50,
+which is more higher and larger range than the control arm.
+# Question 3
