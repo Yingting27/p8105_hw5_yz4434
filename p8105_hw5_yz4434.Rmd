@@ -80,7 +80,7 @@ the experimental arm has the range of observations between around -1.45 and 7.50
 which is more higher and larger range than the control arm.
 
 # Question 3
-Create dataset
+Create dataset: x∼Normal[μ,σ]
 ```{r}
 set.seed(12345)
 
@@ -97,15 +97,35 @@ sim_results_df= map(1:5000,\(i) sim_df(mu=0))|> bind_rows()
 ```
 
 
-## Making plots with conditions of μ={1,2,3,4,5,6}
+Making plots with conditions of μ={1,2,3,4,5,6}
 ```{r}
-mu_result_df = 
+result_df = 
   expand_grid(
     mu = c(1:6),
     iter = 1:5000
   ) |> 
-  mutate(estimate = map(mu, sim_df)) |> unnest(estimate) |> 
-  mutate(power=p.value<0.05)
+  mutate(estimate = map(mu, sim_df)) |> unnest(estimate)
 
 ```
+
+Make a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of μ on the x axis. Describe the association between effect size and power.
+
+```{r}
+plot_reject=result_df |>
+  group_by(mu) |> 
+  mutate(reject_null= as.numeric(p.value<0.05)) |> 
+  summarise(power = mean(reject_null)) |>
+  ggplot(aes(x=mu, y=power))+ geom_line()+
+      labs(x = "The true value of μ",
+       y= "Power of the Test",
+       title = "The Association Between Effect Size and Power")
+
+plot_reject
+
+```
+
+Description: This plot indicates the association between the true value of μ and power of the test. The effect size shows the difference between the true means of μ
+and the means of proportional times that null hypothesis was rejected. In this case, as the increasing true value of μ from 1 to 6, the power is increasing until 
+to reach the null, which means that it is more likely to reject the false hypothesis.
+
 
