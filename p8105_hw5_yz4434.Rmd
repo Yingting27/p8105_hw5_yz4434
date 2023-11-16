@@ -92,8 +92,6 @@ sim_df = function(mu,n=30,sigma=5) {
     select(estimate, p.value)
 }
 
-sim_results_df= map(1:5000,\(i) sim_df(mu=0))|> bind_rows()
-
 ```
 
 
@@ -101,7 +99,7 @@ Making plots with conditions of μ={1,2,3,4,5,6}
 ```{r}
 result_df = 
   expand_grid(
-    mu = c(1:6),
+    mu = c(0:6),
     iter = 1:5000
   ) |> 
   mutate(estimate = map(mu, sim_df)) |> unnest(estimate)
@@ -115,7 +113,7 @@ plot_reject=result_df |>
   group_by(mu) |> 
   mutate(reject_null= as.numeric(p.value<0.05)) |> 
   summarise(power = mean(reject_null)) |>
-  ggplot(aes(x=mu, y=power))+ geom_line()+
+  ggplot(aes(x=mu, y=power))+ geom_line()+geom_point()+
       labs(x = "The true value of μ",
        y= "Power of the Test",
        title = "The Association Between Effect Size and Power")
@@ -124,8 +122,36 @@ plot_reject
 
 ```
 
-Description: This plot indicates the association between the true value of μ and power of the test. The effect size shows the difference between the true means of μ
-and the means of proportional times that null hypothesis was rejected. In this case, as the increasing true value of μ from 1 to 6, the power is increasing until 
-to reach the null, which means that it is more likely to reject the false hypothesis.
+Description: This plot indicates the association between the true value of μ and power of the test, which is positive correlation. The effect size shows the difference between the true means of μ and the means of proportional times that null hypothesis was rejected. In this case, as the increasing true value of μ from 0 to 6, the power is increasing until to reach the null, which means that it is more likely to reject the false hypothesis. This pattern shows that larger
 
 
+
+Make a plot showing the average estimate of μ̂
+
+```{r}
+plot1 = result_df |> 
+  group_by(mu) |> 
+  summarise(average = mean(estimate)) |>
+    mutate(case="case1")
+
+plot2 = result_df |> 
+  filter(p.value<0.05) |> 
+  group_by(mu) |> 
+  summarise(average = mean(estimate)) |> 
+      mutate(case="case2")
+
+# Combine these two plots
+plots=bind_rows(plot1, plot2) |> 
+    ggplot(aes(x = mu, y = average, color = case))+geom_line()+
+    geom_point()+
+        labs(x = "The true value of μ",
+       y= "Average Estimate of μ̂",
+       title = "Average Estimate of μ̂ ")
+
+plots
+
+```
+
+Is the sample average of μ̂ across tests for which the null is rejected approximately equal to the true value of μ? Why or why not?
+ 
+Description: the purple line indicates the association between the average estimate of μ̂  and the true value of mu. The yellow line shows the average estimate of μ̂ when the null hypothesis was rejected.The average of sample estimates across tests where the null hypothesis was rejected tend to deviate from the actual true mean. This situation occurs is that the rejection of null hypothesis would impact and lead to overestimate the true mean when rejecting the null. the plot shows that even when the null is rejected, the average estimate of mu is still very close to the true value of μ. This suggests that the sample average of mu across tests where the null is rejected is approximately equal to the true value of μ. This might occur if the tests have high power and the sample size is large, leading to rejections even for small deviations from the null.
