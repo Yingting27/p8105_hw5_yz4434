@@ -128,6 +128,8 @@ mutate(
     names_prefix = "week_")|> 
     separate(file_path,into = c("arm","subject_id"))
 
+study_df
+
 
 ```
 
